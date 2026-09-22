@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حساب یار</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="حساب یار">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="برنامه حسابداری شخصی برای ثبت درآمد و هزینه">
+
+    <!-- آیکون‌ها (بعداً فایل‌ها رو اضافه می‌کنی) -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card h3 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .card .amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .card.balance .amount { color: var(--primary); }
+        .card.income .amount { color: var(--success); }
+        .card.expense .amount { color: var(--danger); }
+
+        .form-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+            border: 1px solid var(--border);
+        }
+
+        .form-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .transactions {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .transactions h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .transaction-list {
+            list-style: none;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .tx-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tx-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .tx-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .tx-amount {
+            font-weight: 700;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+
+        .tx-amount.income { color: var(--success); }
+        .tx-amount.expense { color: var(--danger); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .backup-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+
+        /* دکمه نصب PWA */
+        #install-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 حساب یار</h1>
+            <p>ثبت و مدیریت درآمد و هزینه‌های روزمره</p>
+        </header>
+
+        <div class="summary">
+            <div class="card balance">
+                <h3>موجودی کل</h3>
+                <div class="amount" id="balance">۰ تومان</div>
+            </div>
+            <div class="card income">
+                <h3>کل درآمد</h3>
+                <div class="amount" id="total-income">۰ تومان</div>
+            </div>
+            <div class="card expense">
+                <h3>کل هزینه</h3>
+                <div class="amount" id="total-expense">۰ تومان</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>➕ ثبت تراکنش جدید</h2>
+            <form id="transaction-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="type">نوع</label>
+                        <select id="type" required>
+                            <option value="income">درآمد</option>
+                            <option value="expense">هزینه</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">مبلغ (تومان)</label>
+                        <input type="number" id="amount" min="1" step="1" required placeholder="مثال: ۵۰۰۰۰">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">دسته‌بندی</label>
+                        <input type="text" id="category" required placeholder="مثال: حقوق، غذا، قبض...">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">تاریخ</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group full">
+                        <label for="description">توضیحات (اختیاری)</label>
+                        <textarea id="description" placeholder="توضیح کوتاه..."></textarea>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">ثبت تراکنش</button>
+                    <button type="button" class="btn btn-outline" id="clear-form">پاک کردن فرم</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="transactions">
+            <h2>📋 لیست تراکنش‌ها</h2>
+            
+            <div class="filter-bar">
+                <select id="filter-type">
+                    <option value="all">همه</option>
+                    <option value="income">فقط درآمد</option>
+                    <option value="expense">فقط هزینه</option>
+                </select>
+                <select id="filter-month">
+                    <option value="all">همه ماه‌ها</option>
+                </select>
+            </div>
+
+            <ul class="transaction-list" id="transaction-list"></ul>
+
+            <div class="empty-state" id="empty-state" style="display: none;">
+                <div>📭</div>
+                <p>هنوز تراکنشی ثبت نشده است</p>
+            </div>
+
+            <div class="backup-section">
+                <button class="btn btn-success" id="export-btn">⬇️ دانلود بکاپ</button>
+                <div class="file-input-wrapper">
+                    <button class="btn btn-outline">⬆️ بارگذاری بکاپ</button>
+                    <input type="file" id="import-file" accept=".json">
+                </div>
+                <button class="btn btn-outline" id="clear-all" style="margin-right: auto; color: var(--danger); border-color: #fecaca;">
+                    🗑️ پاک کردن همه داده‌ها
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- دکمه نصب -->
+    <button id="install-btn" class="btn btn-primary">📲 نصب حساب یار</button>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== PWA ====================
+        // ساخت Manifest به صورت پویا
+        const manifest = {
+            name: "حساب یار",
+            short_name: "حساب یار",
+            description: "برنامه حسابداری شخصی",
+            start_url: "./",
+            display: "standalone",
+            background_color: "#f8fafc",
+            theme_color: "#4f46e5",
+            orientation: "portrait",
+            icons: [
+                {
+                    src: "icon-192.png",
+                    sizes: "192x192",
+                    type: "image/png",
+                    purpose: "any maskable"
+                },
+                {
+                    src: "icon-512.png",
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestURL;
+        document.head.appendChild(link);
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'hesab-yar-v1';
+                const urlsToCache = ['./'];
+
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                    );
+                });
+
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => response || fetch(event.request))
+                    );
+                });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swURL = URL.createObjectURL(swBlob);
+
+            navigator.serviceWorker.register(swURL)
+                .then(() => console.log('Service Worker ثبت شد'))
+                .catch(err => console.log('خطا در Service Worker:', err));
+        }
+
+        // دکمه نصب
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'block';
+        });
+
+        document.getElementById('install-btn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-btn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // ==================== منطق برنامه ====================
+        const STORAGE_KEY = 'personal_accounting_data';
+        let transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('fa-IR').format(num);
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('fa-IR');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+            updateUI();
+        }
+
+        function updateUI() {
+            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const balance = income - expense;
+
+            document.getElementById('balance').textContent = formatNumber(balance) + ' تومان';
+            document.getElementById('total-income').textContent = formatNumber(income) + ' تومان';
+            document.getElementById('total-expense').textContent = formatNumber(expense) + ' تومان';
+
+            populateMonthFilter();
+            renderTransactions();
+        }
+
+        function populateMonthFilter() {
+            const select = document.getElementById('filter-month');
+            const currentValue = select.value;
+            const months = [...new Set(transactions.map(t => t.date.substring(0, 7)))].sort().reverse();
+            
+            select.innerHTML = '<option value="all">همه ماه‌ها</option>';
+            months.forEach(m => {
+                const [year, month] = m.split('-');
+                const option = document.createElement('option');
+                option.value = m;
+                option.textContent = `${year}/${month}`;
+                select.appendChild(option);
+            });
+            select.value = currentValue;
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById('transaction-list');
+            const empty = document.getElementById('empty-state');
+            const typeFilter = document.getElementById('filter-type').value;
+            const monthFilter = document.getElementById('filter-month').value;
+
+            let filtered = [...transactions];
+            if (typeFilter !== 'all') filtered = filtered.filter(t => t.type === typeFilter);
+            if (monthFilter !== 'all') filtered = filtered.filter(t => t.date.startsWith(monthFilter));
+
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
+
+            list.innerHTML = '';
+            if (filtered.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            filtered.forEach(t => {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                li.innerHTML = `
+                    <div class="tx-info">
+                        <div class="tx-title">${t.category}${t.description ? ' - ' + t.description : ''}</div>
+                        <div class="tx-meta">${formatDate(t.date)} • ${t.type === 'income' ? 'درآمد' : 'هزینه'}</div>
+                    </div>
+                    <div class="tx-amount ${t.type}">
+                        ${t.type === 'income' ? '+' : '-'} ${formatNumber(t.amount)}
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteTransaction(${t.id})">حذف</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById('transaction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const type = document.getElementById('type').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const category = document.getElementById('category').value.trim();
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value.trim();
+
+            if (!amount || amount <= 0) {
+                showToast('لطفاً مبلغ معتبر وارد کنید', 'error');
+                return;
+            }
+
+            transactions.push({
+                id: Date.now(),
+                type,
+                amount,
+                category,
+                date,
+                description
+            });
+            saveData();
+            this.reset();
+            setDefaultDate();
+            showToast('تراکنش با موفقیت ثبت شد');
+        });
+
+        function deleteTransaction(id) {
+            if (confirm('آیا از حذف این تراکنش مطمئن هستید؟')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveData();
+                showToast('تراکنش حذف شد');
+            }
+        }
+
+        document.getElementById('clear-form').addEventListener('click', () => {
+            document.getElementById('transaction-form').reset();
+            setDefaultDate();
+        });
+
+        document.getElementById('filter-type').addEventListener('change', renderTransactions);
+        document.getElementById('filter-month').addEventListener('change', renderTransactions);
+
+        document.getElementById('export-btn').addEventListener('click', () => {
+            if (transactions.length === 0) {
+                showToast('داده‌ای برای بکاپ وجود ندارد', 'error');
+                return;
+            }
+            const dataStr = JSON.stringify(transactions, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `حساب_یار_بکاپ_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('فایل بکاپ دانلود شد');
+        });
+
+        document.getElementById('import-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    if (!Array.isArray(imported)) throw new Error('فرمت نامعتبر');
+                    if (confirm(`آیا می‌خواهید ${imported.length} تراکنش را جایگزین کنید؟`)) {
+                        transactions = imported;
+                        saveData();
+                        showToast(`${imported.length} تراکنش بارگذاری شد`);
+                    }
+                } catch (err) {
+                    showToast('خطا در خواندن فایل', 'error');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('clear-all').addEventListener('click', () => {
+            if (transactions.length === 0) return showToast('داده‌ای وجود ندارد', 'error');
+            if (confirm('همه داده‌ها پاک شوند؟ این عمل برگشت‌ناپذیر است!')) {
+                transactions = [];
+                saveData();
+                showToast('همه داده‌ها پاک شدند');
+            }
+        });
+
+        function setDefaultDate() {
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        }
+
+        setDefaultDate();
+        updateUI();
+    </script>
+</body>
+</html>
